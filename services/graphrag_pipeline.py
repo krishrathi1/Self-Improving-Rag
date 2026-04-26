@@ -114,7 +114,7 @@ class GraphRAGPipeline:
         pm = get_prompt_manager()
 
         # Format graph context for the prompt
-        context_text = "\n\n".join([c.text for c in graph_context.chunks[:4]])
+        context_text = "\n\n".join([c.text[:700] for c in graph_context.chunks[:3]])
         relationships_text = self._format_relationships(graph_context.relationships)
 
         prompt = pm.get(
@@ -124,7 +124,7 @@ class GraphRAGPipeline:
             question=query,
         )
 
-        response = await llm.generate(prompt, max_tokens=768)
+        response = await llm.generate(prompt, max_tokens=480)
 
         # --- Step 7: Output Guard ---
         safe_answer = output_guard(response.text)

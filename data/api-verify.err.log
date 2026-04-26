@@ -1,16 +1,41 @@
-INFO:     Started server process [46072]
+INFO:     Started server process [47696]
 INFO:     Waiting for application startup.
-2026-04-26 14:18:43.196 | INFO     | app.main:lifespan:29 - \U0001f680 Starting APEX — Self-Improving GraphRAG v1.0.0
-2026-04-26 14:18:43.196 | INFO     | app.main:lifespan:30 - \U0001f4ca LLM Provider: ollama / llama3.2:latest
-2026-04-26 14:18:43.197 | INFO     | app.main:lifespan:31 - \U0001f42f TigerGraph: http://localhost:14240
-2026-04-26 14:18:43.197 | INFO     | app.main:lifespan:32 - \U0001f534 Redis: redis://localhost:6379
+2026-04-26 14:21:56.918 | INFO     | app.main:lifespan:29 - \U0001f680 Starting APEX — Self-Improving GraphRAG v1.0.0
+2026-04-26 14:21:56.918 | INFO     | app.main:lifespan:30 - \U0001f4ca LLM Provider: ollama / llama3.2:latest
+2026-04-26 14:21:56.918 | INFO     | app.main:lifespan:31 - \U0001f42f TigerGraph: http://localhost:14240
+2026-04-26 14:21:56.918 | INFO     | app.main:lifespan:32 - \U0001f534 Redis: redis://localhost:6379
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8012 (Press CTRL+C to quit)
-2026-04-26 14:18:46.597 | INFO     | graph.tigergraph_layer:__init__:41 - \U0001f42f TigerGraph Layer created (host: http://localhost:14240)
-2026-04-26 14:18:55.299 | WARNING  | graph.tigergraph_layer:conn:64 - Could not auto-generate TigerGraph API token
-2026-04-26 14:18:55.299 | SUCCESS  | graph.tigergraph_layer:conn:67 - \u2705 Connected to TigerGraph: APEX_KG
-2026-04-26 14:18:59.378 | INFO     | services.semantic_cache:__init__:41 - \U0001f4be Semantic Cache initialized (min confidence: 0.75)
-2026-04-26 14:19:03.461 | WARNING  | services.semantic_cache:redis:60 - Redis unavailable, using in-memory cache: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
-2026-04-26 14:19:03.461 | INFO     | llm.llm_layer:__init__:47 - \U0001f916 LLM Layer initialized: ollama/llama3.2:latest
-2026-04-26 14:19:04.367 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 905ms
-2026-04-26 14:19:04.379 | INFO     | evaluation.metrics_store:__init__:41 - \U0001f4ca Metrics Store initialized: C:\Users\KRISH\Desktop\Self Rag\data\apex_metrics.db
+2026-04-26 14:22:00.195 | INFO     | graph.tigergraph_layer:__init__:41 - \U0001f42f TigerGraph Layer created (host: http://localhost:14240)
+2026-04-26 14:22:09.341 | WARNING  | graph.tigergraph_layer:conn:64 - Could not auto-generate TigerGraph API token
+2026-04-26 14:22:09.341 | SUCCESS  | graph.tigergraph_layer:conn:67 - \u2705 Connected to TigerGraph: APEX_KG
+2026-04-26 14:22:13.402 | INFO     | services.semantic_cache:__init__:41 - \U0001f4be Semantic Cache initialized (min confidence: 0.75)
+2026-04-26 14:22:17.481 | WARNING  | services.semantic_cache:redis:60 - Redis unavailable, using in-memory cache: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-04-26 14:22:17.481 | INFO     | llm.llm_layer:__init__:47 - \U0001f916 LLM Layer initialized: ollama/llama3.2:latest
+2026-04-26 14:22:18.208 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 726ms
+2026-04-26 14:22:18.211 | INFO     | evaluation.metrics_store:__init__:41 - \U0001f4ca Metrics Store initialized: C:\Users\KRISH\Desktop\Self Rag\data\apex_metrics.db
+2026-04-26 14:22:35.867 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 405ms
+2026-04-26 14:22:40.006 | INFO     | routes.query:query:127 - \U0001f4e9 Query received: mode=PipelineMode.GRAPHRAG, query=Which parts of APEX improve after each successful query?...
+2026-04-26 14:22:40.006 | INFO     | orchestration.query_router:__init__:30 - \U0001f9ed Query Router initialized
+2026-04-26 14:22:48.121 | INFO     | orchestration.query_router:classify:91 - \U0001f9ed Route: vector_fallback (Low graph coverage (0%) \u2192 vector-only fallback)
+2026-04-26 14:22:52.186 | WARNING  | graph.tigergraph_layer:multi_hop_retrieve:118 - GSQL query failed, falling back to REST API: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/multi_hop_retrieve (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C330CD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:04.370 | INFO     | graph.tigergraph_layer:multi_hop_retrieve:132 - Graph retrieval: 20 chunks, 1 relationships, 0 hops, 16248ms
+2026-04-26 14:23:04.374 | INFO     | llm.prompt_manager:__init__:53 - \U0001f4dd Prompt Manager initialized with default templates
+2026-04-26 14:23:28.309 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 818 tokens, $0.000000, 23933ms
+2026-04-26 14:23:28.311 | INFO     | services.feedback_loop:__init__:31 - \U0001f504 Feedback Loop initialized
+2026-04-26 14:23:28.311 | INFO     | services.feedback_loop:process:52 - \U0001f504 Feedback processing: CRAG=0.807, entities=2, edges=1
+2026-04-26 14:23:32.346 | WARNING  | graph.tigergraph_layer:apply_feedback:176 - Edge weight update failed (non-critical): HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/update_edge_weights (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C341ED0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:32.346 | DEBUG    | services.feedback_loop:_channel_graph_edges:102 - \U0001f4ca Channel 1: 1 edge weights updated
+2026-04-26 14:23:32.347 | DEBUG    | services.semantic_cache:put:151 - \U0001f4be Cached (memory): 1 entries total
+2026-04-26 14:23:32.347 | DEBUG    | services.feedback_loop:_channel_cache:112 - \U0001f4be Channel 2: Cache processed (grade=0.807)
+2026-04-26 14:23:32.347 | DEBUG    | llm.prompt_manager:track_and_refine:205 - Prompt 'graphrag_qa' v1: avg_score=0.807, uses=1
+2026-04-26 14:23:32.348 | DEBUG    | services.feedback_loop:_channel_prompt_tracking:123 - \U0001f4dd Channel 3: Prompt 'v1' tracked
+2026-04-26 14:23:32.348 | DEBUG    | services.feedback_loop:_channel_pattern_learning:135 - \U0001f9ed Channel 4: Pattern recorded (strategy=vector_fallback, grade=0.807)
+2026-04-26 14:23:36.405 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Based': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C343C90>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:40.466 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Edge Weight Strengthening': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C385210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:44.518 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'According': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C343B50>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:48.584 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'The': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C32DD50>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:52.623 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Cache Warming': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C3329D0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:23:56.669 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'This': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C331210>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:24:00.712 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Edge Weight Weakening': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C384110>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
+2026-04-26 14:24:04.748 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Prompt Auto': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002606C386A90>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))

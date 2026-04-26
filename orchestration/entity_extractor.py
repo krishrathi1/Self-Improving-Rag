@@ -104,9 +104,9 @@ class EntityExtractor:
                 entities.append(Entity(name=name, entity_type="CONCEPT", confidence=0.4))
                 seen.add(name)
 
-        if not entities:
-            # Last resort: use the whole query as a single entity
-            entities.append(Entity(name=text[:100].strip(), entity_type="QUERY", confidence=0.3))
+        full_query = text[:140].strip()
+        if full_query and full_query.lower() not in seen:
+            entities.append(Entity(name=full_query, entity_type="QUERY", confidence=0.35))
 
         return entities[:10]  # Cap at 10 entities
 
