@@ -83,14 +83,26 @@ class LLMLayer:
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         system_prompt: Optional[str] = None,
+        routing_strategy: str = "default"
     ) -> LLMResponse:
         """
         Generate a response from the LLM.
-        
+        V2 UPGRADE: Supports multi-model intelligent routing based on task complexity.
         Returns an LLMResponse with text, token usage, cost, and latency.
         """
         temp = temperature if temperature is not None else self.temperature
         max_tok = max_tokens if max_tokens is not None else self.max_tokens
+
+        # Smart Routing Logic (Cost/Complexity Optimization)
+        target_model = self.model
+        if routing_strategy == "fast":
+            target_model = "gemini-1.5-flash" if self.provider == "google" else "llama-3.1-8b-instant"
+        elif routing_strategy == "complex":
+            target_model = "gpt-4o" if self.provider == "openai" else "llama-3.3-70b-versatile"
+        
+        # Override temporary self.model for this execution
+        original_model = self.model
+        self.model = target_model
 
         start = time.perf_counter()
 
@@ -110,6 +122,8 @@ class LLMLayer:
         except Exception as e:
             logger.error(f"LLM generation error: {e}")
             raise
+        finally:
+            self.model = original_model # Restore original model
 
         elapsed_ms = (time.perf_counter() - start) * 1000
 

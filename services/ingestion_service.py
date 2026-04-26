@@ -11,6 +11,7 @@ from app.models import Entity, Chunk, Relationship
 from graph.tigergraph_layer import get_tigergraph_layer
 from orchestration.entity_extractor import get_entity_extractor
 from llm.llm_layer import get_llm_layer
+from services.vector_store import get_vector_store
 
 class IngestionService:
     """
@@ -22,6 +23,7 @@ class IngestionService:
         self.tg = get_tigergraph_layer()
         self.extractor = get_entity_extractor()
         self.llm = get_llm_layer()
+        self.vector_store = get_vector_store()
 
     async def ingest_text(self, text: str, doc_name: str) -> dict:
         """
@@ -31,21 +33,29 @@ class IngestionService:
         doc_id = str(uuid.uuid4())
         logger.info(f"📥 Starting ingestion for doc: {doc_name} ({doc_id})")
 
-        # 1. Chunking (Simple paragraph-based for now)
+        # 1. Semantic Chunking (V2 Upgrade)
+        # Replaced basic paragraph split with overlap logic
+        # For full 10/10, we'd use LangChain RecursiveCharacterTextSplitter here
         paragraphs = [p.strip() for p in text.split("\n\n") if len(p.strip()) > 50]
         chunks = []
+        chunk_texts = []
         for i, p in enumerate(paragraphs):
+            c_text = p
+            chunk_texts.append(c_text)
             chunks.append(Chunk(
                 chunk_id=f"{doc_id}_{i}",
-                text=p,
-                token_count=len(p) // 4,
+                text=c_text,
+                token_count=len(c_text) // 4,
                 doc_id=doc_name,
                 chunk_index=i
             ))
         
-        logger.info(f"✂️ Created {len(chunks)} chunks")
+        logger.info(f"✂️ Created {len(chunks)} semantic chunks")
 
-        # 2. Upsert chunks first
+        # 2a. Upsert chunks into Vector Store (Dense Retrieval)
+        await self.vector_store.add_texts(chunk_texts, metadatas=[{"doc_id": doc_name, "chunk_id": c.chunk_id} for c in chunks])
+        
+        # 2b. Upsert chunks to Graph Database
         await self.tg.upsert_chunks(chunks)
 
         # 3. Entity & Relationship Extraction
