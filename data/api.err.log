@@ -1,0 +1,96 @@
+INFO:     Started server process [22008]
+INFO:     Waiting for application startup.
+2026-04-26 14:04:42.695 | INFO     | app.main:lifespan:29 - \U0001f680 Starting APEX — Self-Improving GraphRAG v1.0.0
+2026-04-26 14:04:42.695 | INFO     | app.main:lifespan:30 - \U0001f4ca LLM Provider: ollama / llama3.2:latest
+2026-04-26 14:04:42.695 | INFO     | app.main:lifespan:31 - \U0001f42f TigerGraph: http://localhost:14240
+2026-04-26 14:04:42.695 | INFO     | app.main:lifespan:32 - \U0001f534 Redis: redis://localhost:6379
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-04-26 14:04:53.483 | INFO     | graph.tigergraph_layer:__init__:41 - \U0001f42f TigerGraph Layer created (host: http://localhost:14240)
+2026-04-26 14:05:02.138 | WARNING  | graph.tigergraph_layer:conn:64 - Could not auto-generate TigerGraph API token
+2026-04-26 14:05:02.139 | SUCCESS  | graph.tigergraph_layer:conn:67 - \u2705 Connected to TigerGraph: APEX_KG
+2026-04-26 14:05:06.188 | INFO     | services.semantic_cache:__init__:41 - \U0001f4be Semantic Cache initialized (min confidence: 0.75)
+2026-04-26 14:05:10.300 | WARNING  | services.semantic_cache:redis:60 - Redis unavailable, using in-memory cache: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-04-26 14:05:10.300 | INFO     | llm.llm_layer:__init__:47 - \U0001f916 LLM Layer initialized: ollama/llama3.2:latest
+2026-04-26 14:05:21.832 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 11531ms
+2026-04-26 14:05:21.837 | INFO     | evaluation.metrics_store:__init__:41 - \U0001f4ca Metrics Store initialized: C:\Users\KRISH\Desktop\Self Rag\data\apex_metrics.db
+2026-04-26 14:07:39.360 | INFO     | llm.prompt_manager:__init__:53 - \U0001f4dd Prompt Manager initialized with default templates
+2026-04-26 14:07:39.361 | INFO     | orchestration.query_router:__init__:30 - \U0001f9ed Query Router initialized
+2026-04-26 14:07:43.915 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 498ms
+2026-04-26 14:07:48.457 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 472ms
+2026-04-26 14:07:58.859 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 414ms
+2026-04-26 14:08:13.990 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 566ms
+2026-04-26 14:08:28.744 | INFO     | routes.query:query:106 - \U0001f4e9 Query received: mode=PipelineMode.COMPARISON, query=How does the self-improving feedback loop reduce future token usage?...
+2026-04-26 14:08:32.812 | DEBUG    | services.baseline_pipeline:_simple_retrieve:102 - Baseline retrieval skipped: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/vector_search (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:08:32.813 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 4405ms
+2026-04-26 14:08:43.478 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 167 tokens, $0.000000, 10667ms
+2026-04-26 14:08:43.479 | INFO     | services.baseline_pipeline:run:60 - \u2705 Baseline: 167 tokens, $0.000000, 14728ms
+2026-04-26 14:08:47.718 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 166 tokens, $0.000000, 4238ms
+2026-04-26 14:08:47.719 | INFO     | orchestration.entity_extractor:_llm_extract:64 - \U0001f50d Extracted 2 entities: ['self-improving feedback loop', 'future token usage']
+2026-04-26 14:08:55.811 | INFO     | orchestration.query_router:classify:91 - \U0001f9ed Route: vector_fallback (Low graph coverage (0%) \u2192 vector-only fallback)
+2026-04-26 14:08:59.857 | WARNING  | graph.tigergraph_layer:multi_hop_retrieve:118 - GSQL query failed, falling back to REST API: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/multi_hop_retrieve (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:09:12.024 | INFO     | graph.tigergraph_layer:multi_hop_retrieve:132 - Graph retrieval: 20 chunks, 1 relationships, 0 hops, 16212ms
+2026-04-26 14:09:12.029 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 28553ms
+2026-04-26 14:09:18.166 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 1517 tokens, $0.000000, 6142ms
+2026-04-26 14:09:18.167 | INFO     | orchestration.crag_agent:grade:72 - \U0001f4ca CRAG Grade: CORRECT (0.700) — Passages contain most of the needed information about the self-improving feedbac
+2026-04-26 14:09:18.920 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 2821ms
+2026-04-26 14:09:56.586 | INFO     | routes.query:query:106 - \U0001f4e9 Query received: mode=PipelineMode.COMPARISON, query=How does the self-improving feedback loop reduce future token usage?...
+2026-04-26 14:09:56.587 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 33583ms
+2026-04-26 14:10:00.646 | DEBUG    | services.baseline_pipeline:_simple_retrieve:102 - Baseline retrieval skipped: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/vector_search (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:10:00.654 | ERROR    | llm.llm_layer:generate:111 - LLM generation error: 
+2026-04-26 14:10:01.307 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 8794ms
+2026-04-26 14:10:01.607 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 5026ms
+2026-04-26 14:10:08.779 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 164 tokens, $0.000000, 8131ms
+2026-04-26 14:10:08.780 | INFO     | services.baseline_pipeline:run:60 - \u2705 Baseline: 164 tokens, $0.000000, 12190ms
+2026-04-26 14:10:09.520 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 3832ms
+2026-04-26 14:10:13.594 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 166 tokens, $0.000000, 4813ms
+2026-04-26 14:10:13.595 | INFO     | orchestration.entity_extractor:_llm_extract:64 - \U0001f50d Extracted 2 entities: ['self-improving feedback loop', 'future token usage']
+2026-04-26 14:10:21.689 | INFO     | orchestration.query_router:classify:91 - \U0001f9ed Route: vector_fallback (Low graph coverage (0%) \u2192 vector-only fallback)
+2026-04-26 14:10:25.717 | WARNING  | graph.tigergraph_layer:multi_hop_retrieve:118 - GSQL query failed, falling back to REST API: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/multi_hop_retrieve (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:10:37.879 | INFO     | graph.tigergraph_layer:multi_hop_retrieve:132 - Graph retrieval: 20 chunks, 1 relationships, 0 hops, 16189ms
+2026-04-26 14:10:41.938 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 28347ms
+2026-04-26 14:10:46.026 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 4088ms
+2026-04-26 14:10:48.095 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 1517 tokens, $0.000000, 10215ms
+2026-04-26 14:10:48.096 | INFO     | orchestration.crag_agent:grade:72 - \U0001f4ca CRAG Grade: CORRECT (0.700) — Passages contain most of the needed information about the self-improving feedbac
+2026-04-26 14:10:48.852 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 2831ms
+2026-04-26 14:11:27.330 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 1943 tokens, $0.000000, 39234ms
+2026-04-26 14:11:27.332 | INFO     | services.feedback_loop:__init__:31 - \U0001f504 Feedback Loop initialized
+2026-04-26 14:11:27.333 | INFO     | services.feedback_loop:process:52 - \U0001f504 Feedback processing: CRAG=0.700, entities=2, edges=1
+2026-04-26 14:11:31.392 | WARNING  | graph.tigergraph_layer:apply_feedback:176 - Edge weight update failed (non-critical): HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/query/APEX_KG/update_edge_weights (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:31.392 | DEBUG    | services.feedback_loop:_channel_graph_edges:102 - \U0001f4ca Channel 1: 1 edge weights updated
+2026-04-26 14:11:31.392 | DEBUG    | services.semantic_cache:put:116 - Cache SKIP: grade 0.700 < threshold 0.75
+2026-04-26 14:11:31.392 | DEBUG    | services.feedback_loop:_channel_cache:112 - \U0001f4be Channel 2: Cache processed (grade=0.700)
+2026-04-26 14:11:31.393 | DEBUG    | llm.prompt_manager:track_and_refine:205 - Prompt 'graphrag_qa' v1: avg_score=0.700, uses=1
+2026-04-26 14:11:31.393 | DEBUG    | services.feedback_loop:_channel_prompt_tracking:123 - \U0001f4dd Channel 3: Prompt 'v1' tracked
+2026-04-26 14:11:31.393 | DEBUG    | services.feedback_loop:_channel_pattern_learning:135 - \U0001f9ed Channel 4: Pattern recorded (strategy=vector_fallback, grade=0.700)
+2026-04-26 14:11:31.396 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 38459ms
+2026-04-26 14:11:31.396 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 5617ms
+2026-04-26 14:11:35.476 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 432 tokens, $0.000000, 4082ms
+2026-04-26 14:11:35.476 | INFO     | orchestration.entity_extractor:_llm_extract:64 - \U0001f50d Extracted 2 entities: ['Graph Utilization', 'APEX']
+2026-04-26 14:11:39.516 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'Graph Utilization': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:43.572 | DEBUG    | graph.tigergraph_layer:upsert_entities:198 - Entity upsert failed for 'APEX': HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:43.572 | INFO     | graph.tigergraph_layer:upsert_entities:200 - \U0001f4cc Upserted 2 entities
+2026-04-26 14:11:47.619 | DEBUG    | graph.tigergraph_layer:create_relationships:227 - Relationship creation failed: self-improving feedback loop \u2192 Graph Utilization: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG?vertex_must_exist=false (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:51.669 | DEBUG    | graph.tigergraph_layer:create_relationships:227 - Relationship creation failed: self-improving feedback loop \u2192 APEX: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG?vertex_must_exist=false (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:55.729 | DEBUG    | graph.tigergraph_layer:create_relationships:227 - Relationship creation failed: future token usage \u2192 Graph Utilization: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG?vertex_must_exist=false (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:59.776 | DEBUG    | graph.tigergraph_layer:create_relationships:227 - Relationship creation failed: future token usage \u2192 APEX: HTTPConnectionPool(host='localhost', port=14240): Max retries exceeded with url: /restpp/graph/APEX_KG?vertex_must_exist=false (Caused by NewConnectionError("HTTPConnection(host='localhost', port=14240): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-26 14:11:59.777 | INFO     | services.feedback_loop:_channel_entity_discovery:175 - \U0001f331 Channel 5: Discovered 2 new entities: ['Graph Utilization', 'APEX']
+2026-04-26 14:11:59.781 | SUCCESS  | services.feedback_loop:process:81 - \u2705 Feedback processed: 1 total events
+2026-04-26 14:11:59.781 | INFO     | services.graphrag_pipeline:run:174 - \u2705 GraphRAG: 1943 tokens, $0.000000, 78551ms, CRAG: CORRECT (0.700)
+2026-04-26 14:11:59.791 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:03.837 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 28363ms
+2026-04-26 14:12:03.840 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:07.896 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 4062ms
+2026-04-26 14:12:07.902 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:07.914 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:08.433 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 540ms
+2026-04-26 14:12:12.902 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 431ms
+2026-04-26 14:12:16.950 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:17.353 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 407ms
+2026-04-26 14:12:21.823 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 411ms
+2026-04-26 14:12:35.793 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:36.183 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 391ms
+2026-04-26 14:12:46.726 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:12:51.149 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 369ms
+2026-04-26 14:13:01.732 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:13:06.170 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 389ms

@@ -27,12 +27,24 @@ async def health_check():
     dependencies = {}
     overall_status = "healthy"
 
+    def mark_if_unavailable(service_status: dict, *, optional: bool = False):
+        nonlocal overall_status
+        status = str(service_status.get("status", "")).lower()
+        if status in {"connected", "healthy"}:
+            return
+        if optional and status in {"memory_only", "fallback_memory"}:
+            if overall_status == "healthy":
+                overall_status = "degraded"
+            return
+        overall_status = "degraded"
+
     # Check TigerGraph
     try:
         from graph.tigergraph_layer import get_tigergraph_layer
         tg = get_tigergraph_layer()
         tg_status = await tg.health_check()
         dependencies["tigergraph"] = tg_status
+        mark_if_unavailable(tg_status)
     except Exception as e:
         dependencies["tigergraph"] = {"status": "disconnected", "error": str(e)}
         overall_status = "degraded"
@@ -43,6 +55,7 @@ async def health_check():
         cache = get_semantic_cache()
         cache_status = await cache.health_check()
         dependencies["redis"] = cache_status
+        mark_if_unavailable(cache_status, optional=True)
     except Exception as e:
         dependencies["redis"] = {"status": "disconnected", "error": str(e)}
         overall_status = "degraded"
@@ -53,6 +66,7 @@ async def health_check():
         llm = get_llm_layer()
         llm_status = await llm.health_check()
         dependencies["llm"] = llm_status
+        mark_if_unavailable(llm_status)
     except Exception as e:
         dependencies["llm"] = {"status": "disconnected", "error": str(e)}
         overall_status = "degraded"
@@ -63,6 +77,7 @@ async def health_check():
         store = get_metrics_store()
         store_status = await store.health_check()
         dependencies["metrics_db"] = store_status
+        mark_if_unavailable(store_status, optional=True)
     except Exception as e:
         dependencies["metrics_db"] = {"status": "disconnected", "error": str(e)}
         # Metrics DB is non-critical

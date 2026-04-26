@@ -51,7 +51,12 @@ function ChartTooltip({ active, payload, label }) {
   );
 }
 
-function StatusPill({ label, status }) {
+function shortText(value, limit = 86) {
+  const text = String(value || '');
+  return text.length > limit ? `${text.slice(0, limit - 3)}...` : text;
+}
+
+function StatusPill({ label, status, detail }) {
   const normalized = String(status || 'unknown').toLowerCase();
   const tone = normalized.includes('connected') || normalized.includes('healthy')
     ? 'good'
@@ -63,6 +68,7 @@ function StatusPill({ label, status }) {
       <span className="status-dot" />
       <span>{label}</span>
       <strong>{status || 'unknown'}</strong>
+      {detail && <small>{shortText(detail)}</small>}
     </div>
   );
 }
@@ -146,6 +152,100 @@ function Flywheel({ stats }) {
             <span className="step-index">{index + 1}</span>
             <strong>{label}</strong>
             <small>{value}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReadinessPanel({ health }) {
+  const deps = health?.dependencies || {};
+  const items = [
+    {
+      name: 'Local LLM',
+      status: deps.llm?.status || 'checking',
+      detail: deps.llm?.model ? `${deps.llm.provider} / ${deps.llm.model}` : 'Ollama model health check',
+      command: 'ollama list',
+    },
+    {
+      name: 'Graph layer',
+      status: deps.tigergraph?.status || 'checking',
+      detail: deps.tigergraph?.status === 'connected'
+        ? `${deps.tigergraph.total_vertices || 0} vertices, ${deps.tigergraph.total_edges || 0} edges`
+        : 'Fallback retrieval is active until TigerGraph is running.',
+      command: 'docker compose up tigergraph',
+    },
+    {
+      name: 'Semantic cache',
+      status: deps.redis?.status || 'checking',
+      detail: deps.redis?.status === 'connected'
+        ? `${deps.redis.entries || 0} cached entries`
+        : 'Memory cache is active; Redis enables persistence and Redis Insight.',
+      command: 'docker compose up redis',
+    },
+    {
+      name: 'Metrics store',
+      status: deps.metrics_db?.status || 'checking',
+      detail: `${deps.metrics_db?.total_comparisons || 0} saved comparisons`,
+      command: 'data/apex_metrics.db',
+    },
+  ];
+
+  return (
+    <section className="panel readiness-panel">
+      <div className="panel-heading compact">
+        <div>
+          <p className="eyebrow">Production readiness</p>
+          <h2>Dependency checklist</h2>
+        </div>
+      </div>
+      <div className="readiness-list">
+        {items.map((item) => {
+          const normalized = String(item.status).toLowerCase();
+          const tone = normalized.includes('connected') || normalized.includes('healthy')
+            ? 'good'
+            : normalized.includes('memory') || normalized.includes('checking')
+              ? 'warn'
+              : 'bad';
+          return (
+            <div className={cx('readiness-row', tone)} key={item.name}>
+              <span className="readiness-light" />
+              <div>
+                <strong>{item.name}</strong>
+                <small>{item.detail}</small>
+              </div>
+              <code>{item.command}</code>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ArchitecturePanel() {
+  const layers = [
+    ['Layer 1', 'Graph', 'TigerGraph + local fallback retrieval'],
+    ['Layer 2', 'Orchestration', 'Router, CRAG, decomposer, semantic cache'],
+    ['Layer 3', 'LLM', 'Ollama llama3.2:latest with zero API cost'],
+    ['Layer 4', 'Evaluation', 'Savings, latency, cache, CRAG, query history'],
+  ];
+
+  return (
+    <section className="panel architecture-panel">
+      <div className="panel-heading compact">
+        <div>
+          <p className="eyebrow">AI factory model</p>
+          <h2>Four-layer execution map</h2>
+        </div>
+      </div>
+      <div className="layer-map">
+        {layers.map(([index, name, detail]) => (
+          <div className="layer-card" key={name}>
+            <span>{index}</span>
+            <strong>{name}</strong>
+            <small>{detail}</small>
           </div>
         ))}
       </div>
@@ -277,10 +377,10 @@ export default function App() {
           </p>
         </div>
         <div className="status-stack">
-          <StatusPill label="API" status={health?.status || 'checking'} />
-          <StatusPill label="LLM" status={llm.status || 'checking'} />
-          <StatusPill label="Graph" status={deps.tigergraph?.status || 'checking'} />
-          <StatusPill label="Cache" status={deps.redis?.status || 'checking'} />
+          <StatusPill label="API" status={health?.status || 'checking'} detail="FastAPI query, metrics, and health endpoints" />
+          <StatusPill label="LLM" status={llm.status || 'checking'} detail={llm.model || 'Ollama health check'} />
+          <StatusPill label="Graph" status={deps.tigergraph?.status || 'checking'} detail={deps.tigergraph?.error || 'TigerGraph graph layer'} />
+          <StatusPill label="Cache" status={deps.redis?.status || 'checking'} detail={deps.redis?.error || 'Redis semantic cache'} />
           <div className="model-card">
             <span>Active model</span>
             <strong>{llm.model || 'llama3.2:latest'}</strong>
@@ -407,6 +507,11 @@ export default function App() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+      </section>
+
+      <section className="ops-grid">
+        <ReadinessPanel health={health} />
+        <ArchitecturePanel />
       </section>
 
       <section className="bottom-grid">

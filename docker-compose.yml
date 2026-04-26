@@ -11,9 +11,10 @@ services:
     environment:
       - TIGERGRAPH_HOST=http://tigergraph:14240
       - REDIS_URL=redis://redis:6379
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
-      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - LLM_MODEL=${LLM_MODEL:-llama3.2:latest}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
     volumes:
       - ./data:/app/data
     depends_on:
@@ -33,9 +34,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - "3000:80"
     depends_on:
       - apex-api
 

@@ -1,124 +1,113 @@
-# 🏆 APEX — Self-Improving GraphRAG Inference System
+# APEX - Self-Improving GraphRAG
 
-> **TigerGraph GraphRAG Inference Hackathon 2026**  
-> Proving that graphs make LLM inference faster, cheaper, and smarter — and the system gets *better with every query*.
+APEX is a FastAPI + React project that compares a baseline local LLM answer with a self-improving GraphRAG pipeline. It is designed for a polished demo: every query records latency, tokens, CRAG quality, cache behavior, and savings.
 
-## 🚀 What is APEX?
+## What Makes It Strong
 
-APEX is a **self-improving GraphRAG inference system** that proves — with hard numbers — that graph-augmented LLM inference beats vanilla LLM calls in speed, cost, and accuracy. Unlike static comparisons, APEX implements a **closed-loop feedback flywheel** where every query:
+- Local LLM support through Ollama, defaulting to `llama3.2:latest`
+- Side-by-side Baseline vs GraphRAG comparison
+- CRAG grading to decide whether retrieval is good enough
+- Semantic cache for zero-token repeat answers
+- TigerGraph-ready graph layer with local PRD/README fallback retrieval for demos
+- SQLite metrics store powering improvement charts
+- Professional React dashboard with health, readiness, architecture, and benchmark views
 
-- 🔗 **Strengthens the Knowledge Graph** — CRAG grades update edge weights in TigerGraph
-- ⚡ **Warms the Cache** — high-quality responses are cached for instant reuse  
-- 📝 **Refines Prompts** — underperforming prompts are auto-rewritten
-- 🌱 **Discovers Entities** — new entities found in answers expand the graph
-- 🧭 **Learns Patterns** — query routing adapts based on outcomes
+## Run Locally
 
-## 🏗️ Architecture (AI Factory Model)
+Start Ollama and confirm the model exists:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│ Layer 1: Graph Layer (TigerGraph)                          │
-│   Knowledge Graph + Vector Store + GSQL Multi-hop Queries  │
-├────────────────────────────────────────────────────────────┤
-│ Layer 2: Inference Orchestration                           │
-│   Query Router + CRAG Agent + Query Decomposer + Cache     │
-├────────────────────────────────────────────────────────────┤
-│ Layer 3: LLM Layer                                         │
-│   OpenAI/Gemini/Groq + Versioned Prompts + Security Guards │
-├────────────────────────────────────────────────────────────┤
-│ Layer 4: Evaluation Layer                                  │
-│   Benchmark Engine + Metrics Store + Improvement Tracker   │
-└────────────────────────────────────────────────────────────┘
+```powershell
+ollama list
 ```
 
-## 📊 Dual Pipeline Comparison
+Run the backend. Port `8000` is blocked on some Windows setups, so `8010` is the recommended local port:
 
-| Metric | Baseline (LLM Only) | GraphRAG (Self-Improving) |
-|--------|---------------------|---------------------------|
-| Tokens | ~2,800/query | ~1,200/query (↓ 57%) |
-| Latency | ~3,400ms | ~900ms (↓ 74%) |
-| Cost | $0.014/query | $0.004/query (↓ 73%) |
-| Accuracy | 7.2/10 | 8.8/10 (↑ 22%) |
-
-*And the GraphRAG metrics improve with every query batch!*
-
-## 🛠️ Quick Start
-
-### 1. Clone & Configure
-
-```bash
-cp .env.example .env
-# Edit .env with your API keys (OPENAI_API_KEY, etc.)
+```powershell
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
 ```
 
-### 2. Run with Docker Compose
+Run the frontend:
 
-```bash
-docker-compose up -d
+```powershell
+cd frontend
+npm run dev -- --host 127.0.0.1 --port 3000
 ```
 
-### 3. Run Locally (Development)
+Open:
 
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+```text
+http://127.0.0.1:3000
 ```
 
-### 4. Open the Dashboard
+API docs:
 
-- **API Docs**: http://localhost:8000/docs
-- **Dashboard**: http://localhost:3000
-- **TigerGraph Studio**: http://localhost:14240
-- **Redis Insight**: http://localhost:8001
-
-## 📡 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/query` | POST | Run query through pipeline(s) with SSE streaming |
-| `/api/metrics/summary` | GET | Dashboard metrics summary |
-| `/api/metrics/improvement-curve` | GET | Self-improvement data over time |
-| `/api/metrics/latest` | GET | Recent comparison results |
-| `/api/metrics/self-improvement` | GET | Feedback loop statistics |
-| `/api/health` | GET | System health check |
-
-## 🔄 Self-Improvement Loop
-
-```
-Query → Retrieve (TigerGraph) → CRAG Grade → Generate Answer
-         ↓                        ↓                ↓
-    Update edge weights     Cache if good     Track prompt perf
-    in TigerGraph           (grade ≥ 0.75)    Auto-refine if bad
-         ↓                        ↓                ↓
-    Next query uses         Next similar         Next query uses
-    stronger paths          query = instant      better prompts
+```text
+http://127.0.0.1:8010/docs
 ```
 
-## 📁 Project Structure
+## Important Environment Values
 
-```
-apex/
-├── app/           → FastAPI entry point, config, models
-├── routes/        → API endpoints (query, metrics, health)
-├── services/      → Core pipelines + feedback loop
-├── graph/         → TigerGraph integration + GSQL schema
-├── orchestration/ → CRAG agent, query router, entity extractor
-├── llm/           → LLM abstraction + prompt manager
-├── evaluation/    → Metrics store + improvement tracking
-├── security/      → Input/output guards
-├── pipeline/      → Offline data ingestion
-├── frontend/      → React comparison dashboard
-└── data/          → Sample docs + benchmark queries
+```env
+LLM_PROVIDER=ollama
+LLM_MODEL=llama3.2:latest
+OLLAMA_HOST=http://localhost:11434
 ```
 
-## 🏅 Key Innovations
+The Vite dev proxy defaults to `http://127.0.0.1:8010`. Override it only if you run the backend elsewhere:
 
-1. **Self-Improving Feedback Flywheel** — System gets measurably better
-2. **Graph Edge Weight Evolution** — CRAG grades reshape the knowledge graph
-3. **Zero-Token Cache Hits** — Similar queries cost $0.00 after first answer
-4. **Auto-Prompt Refinement** — LLM rewrites its own underperforming prompts
-5. **Adaptive Query Routing** — Router learns which strategy works for which query type
+```powershell
+$env:VITE_API_TARGET="http://127.0.0.1:8000"
+npm run dev -- --host 127.0.0.1 --port 3000
+```
 
-## 📜 License
+## Optional Services
 
-MIT — Built for the TigerGraph GraphRAG Inference Hackathon 2026.
+The app works without TigerGraph or Redis by using local fallback retrieval and in-memory cache. For a fuller production-style demo:
+
+```powershell
+docker compose up redis
+docker compose up tigergraph
+```
+
+Redis Insight:
+
+```text
+http://127.0.0.1:8001
+```
+
+TigerGraph Studio:
+
+```text
+http://127.0.0.1:14240
+```
+
+## Validate
+
+Backend import check:
+
+```powershell
+python -m compileall app llm services routes evaluation graph orchestration security
+```
+
+Frontend production build:
+
+```powershell
+cd frontend
+npm run build
+```
+
+Health check:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8010/api/health
+```
+
+## Browser Console Note
+
+This message is usually caused by a Chrome extension, not this app:
+
+```text
+A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+```
+
+APEX does not use `chrome.runtime` or extension message listeners. Test in an incognito window with extensions disabled if you want to confirm.
