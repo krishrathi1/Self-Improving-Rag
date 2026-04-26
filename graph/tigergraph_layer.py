@@ -255,6 +255,44 @@ class TigerGraphLayer:
                         f"Relationship creation failed: {source.name} → {target.name}: {e}"
                     )
 
+    async def upsert_chunks(self, chunks: list[Chunk]):
+        """Upsert text chunks into the graph."""
+        if self._graph_writes_disabled or self._graph_unavailable:
+            return
+
+        for chunk in chunks:
+            try:
+                self.conn.upsertVertex(
+                    "Chunk",
+                    chunk.chunk_id,
+                    attributes={
+                        "text": chunk.text,
+                        "token_count": chunk.token_count,
+                        "doc_id": chunk.doc_id,
+                        "chunk_index": chunk.chunk_index,
+                    },
+                )
+            except Exception as e:
+                logger.debug(f"Chunk upsert failed: {e}")
+
+    async def link_chunk_to_entities(self, chunk_id: str, entities: list[Entity]):
+        """Create edges between a chunk and the entities it mentions."""
+        if self._graph_writes_disabled or self._graph_unavailable:
+            return
+
+        for entity in entities:
+            try:
+                self.conn.upsertEdge(
+                    "Chunk",
+                    chunk_id,
+                    "mentions",
+                    "Entity",
+                    entity.name,
+                    attributes={},
+                )
+            except Exception as e:
+                logger.debug(f"Chunk-Entity link failed: {chunk_id} → {entity.name}: {e}")
+
     async def check_entity_coverage(self, entities: list[Entity]) -> dict:
         """
         Check how many of the given entities exist in the graph.

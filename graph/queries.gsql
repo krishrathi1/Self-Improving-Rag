@@ -1,0 +1,85 @@
+// TigerGraph GSQL Schema and Queries for APEX
+// ------------------------------------------
+
+// 1. Schema Definitions
+CREATE VERTEX Document(PRIMARY_ID doc_id STRING, title STRING, source_type STRING, ingested_at DATETIME, content_hash STRING) WITH STATS="OUTDEGREE", PRIMARY_ID_AS_ATTRIBUTE="true"
+CREATE VERTEX Chunk(PRIMARY_ID chunk_id STRING, text STRING, token_count INT, chunk_index INT, embedding LIST<FLOAT>, score FLOAT) WITH STATS="OUTDEGREE", PRIMARY_ID_AS_ATTRIBUTE="true"
+CREATE VERTEX Entity(PRIMARY_ID name STRING, name STRING, entity_type STRING, confidence FLOAT, mention_count INT, last_accessed DATETIME) WITH STATS="OUTDEGREE", PRIMARY_ID_AS_ATTRIBUTE="true"
+CREATE VERTEX Community(PRIMARY_ID community_id STRING, summary STRING, entity_count INT, coherence_score FLOAT) WITH STATS="OUTDEGREE", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+CREATE DIRECTED EDGE contains(FROM Document, TO Chunk) WITH REVERSE_EDGE="contained_in"
+CREATE DIRECTED EDGE mentions(FROM Chunk, TO Entity) WITH REVERSE_EDGE="mentioned_in"
+CREATE UNDIRECTED EDGE Relationship(FROM Entity, TO Entity, rel_id STRING, relation_type STRING, weight FLOAT, crag_confidence FLOAT, traversal_count INT, last_strengthened DATETIME)
+CREATE DIRECTED EDGE belongs_to(FROM Entity, TO Community) WITH REVERSE_EDGE="has_member"
+
+// 2. Multi-hop Retrieval Query
+CREATE QUERY multi_hop_retrieve(
+    SET<STRING> seed_entities, 
+    INT max_hops = 2,
+    INT top_k = 20,
+    FLOAT min_edge_weight = 0.3
+) FOR GRAPH MyGraph {
+    
+    SetAccum<EDGE> @@traversed_edges;
+    SetAccum<VERTEX> @@visited_entities;
+    HeapAccum<VERTEX>(top_k, score DESC) @@top_chunks;
+    
+    // Seed: find initial entities
+    Seeds = {Entity.*};
+    Matched = SELECT s FROM Seeds:s
+              WHERE s.name IN seed_entities;
+    
+    // Multi-hop traversal with confidence filtering
+    Current = Matched;
+    FOREACH i IN RANGE[1, max_hops] DO
+        Next = SELECT t FROM Current:s -(Relationship:e)- Entity:t
+               WHERE e.weight >= min_edge_weight
+               ACCUM @@traversed_edges += e,
+                     @@visited_entities += t,
+                     e.traversal_count += 1;
+        Current = Next;
+    END;
+    
+    // Collect chunks from visited entities
+    Chunks = SELECT c FROM @@visited_entities:e -(mentioned_in:m)- Chunk:c
+             ACCUM @@top_chunks += c;
+    
+    PRINT @@top_chunks;
+    PRINT @@traversed_edges;
+}
+
+// 3. Feedback-Driven Edge Weight Update Query
+CREATE QUERY update_edge_weights(
+    STRING query_id,
+    SET<STRING> traversed_edge_ids,
+    FLOAT crag_grade  // 0.0 to 1.0
+) FOR GRAPH MyGraph {
+    
+    FLOAT alpha = 0.3;  // Learning rate
+    
+    Edges = {Relationship.*};
+    Updated = SELECT e FROM Edges:e
+              WHERE e.rel_id IN traversed_edge_ids
+              ACCUM 
+                  e.crag_confidence = (1 - alpha) * e.crag_confidence + alpha * crag_grade,
+                  e.weight = e.weight * (0.8 + 0.4 * crag_grade),  // Scale: 0.8x to 1.2x
+                  e.last_strengthened = now();
+    
+    PRINT Updated.count() AS edges_updated;
+}
+
+// 4. Vector Search Query (placeholder for TG vector search)
+CREATE QUERY vector_search(
+    STRING query_text,
+    INT top_k = 10
+) FOR GRAPH MyGraph {
+    HeapAccum<VERTEX>(top_k, score DESC) @@top_chunks;
+    
+    // In a real setup, this would use a vector index
+    Chunks = {Chunk.*};
+    Result = SELECT c FROM Chunks:c
+             ORDER BY c.score DESC
+             LIMIT top_k;
+    
+    PRINT Result;
+}

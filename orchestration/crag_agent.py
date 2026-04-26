@@ -46,15 +46,6 @@ class CRAGAgent:
             )
 
         llm = get_llm_layer()
-        if llm.provider == "ollama" and any(c.chunk_id.startswith("local:") for c in chunks):
-            best_score = max((c.score for c in chunks), default=0.0)
-            score = max(0.72, min(0.92, 0.74 + best_score * 0.18))
-            return CRAGGrade(
-                score=score,
-                label=CRAGLabel.CORRECT,
-                reason="Local fallback passages overlap with the query and are sufficient for demo grounding.",
-            )
-
         pm = get_prompt_manager()
 
         # Take top 5 chunks for grading (avoid token waste)
