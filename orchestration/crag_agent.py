@@ -11,6 +11,7 @@ from loguru import logger
 from app.models import Chunk, CRAGGrade, CRAGLabel
 from llm.llm_layer import get_llm_layer
 from llm.prompt_manager import get_prompt_manager
+from orchestration.observability import trace_stage
 
 
 class CRAGAgent:
@@ -30,6 +31,7 @@ class CRAGAgent:
     CORRECT_THRESHOLD = 0.7
     AMBIGUOUS_THRESHOLD = 0.3
 
+    @trace_stage("crag_grading")
     async def grade(self, query: str, chunks: list[Chunk]) -> CRAGGrade:
         """
         Grade the relevance of retrieved chunks to the query.

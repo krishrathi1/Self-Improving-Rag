@@ -12,6 +12,7 @@ from loguru import logger
 
 from app.config import get_settings
 from app.models import LLMResponse, TokenUsage
+from orchestration.observability import trace_stage
 
 
 # Per-million-token pricing (input, output) in USD
@@ -77,6 +78,7 @@ class LLMLayer:
 
         return self._client
 
+    @trace_stage("llm_generation")
     async def generate(
         self,
         prompt: str,

@@ -9,6 +9,7 @@ from loguru import logger
 from app.models import Entity, RouteDecision, RouteStrategy
 from graph.tigergraph_layer import get_tigergraph_layer
 from orchestration.entity_extractor import get_entity_extractor
+from orchestration.observability import trace_stage
 
 
 class QueryRouter:
@@ -29,6 +30,7 @@ class QueryRouter:
         self._pattern_memory: dict[str, dict] = {}
         logger.info("🧭 Query Router initialized")
 
+    @trace_stage("query_routing")
     async def classify(self, query: str) -> RouteDecision:
         """
         Classify a query and decide the retrieval strategy.

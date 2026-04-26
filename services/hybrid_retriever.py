@@ -8,6 +8,7 @@ from loguru import logger
 from app.models import Chunk, GraphContext
 from services.vector_store import get_vector_store
 from graph.tigergraph_layer import get_tigergraph_layer
+from orchestration.observability import trace_stage
 
 class HybridRetriever:
     """
@@ -28,6 +29,7 @@ class HybridRetriever:
         self.weights["vector"] = max(0.1, self.weights["vector"] + vector_delta)
         logger.info(f"⚖️ Hybrid Retrieval Weights updated: {self.weights}")
         
+    @trace_stage("hybrid_retrieval")
     async def retrieve(self, query: str) -> GraphContext:
         """
         Run multi-modal retrieval.
