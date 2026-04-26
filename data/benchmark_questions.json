@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "query": "What are the common side effects of metformin in patients with type 2 diabetes?",
+    "domain": "medical",
+    "expected_entities": ["metformin", "type 2 diabetes", "side effects"],
+    "difficulty": "easy"
+  },
+  {
+    "id": 2,
+    "query": "How does aspirin interact with warfarin, and what are the risks of taking them together?",
+    "domain": "medical",
+    "expected_entities": ["aspirin", "warfarin", "drug interaction"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 3,
+    "query": "What is the relationship between insulin resistance and polycystic ovary syndrome?",
+    "domain": "medical",
+    "expected_entities": ["insulin resistance", "polycystic ovary syndrome", "PCOS"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 4,
+    "query": "List the first-line treatments for hypertension in patients with chronic kidney disease.",
+    "domain": "medical",
+    "expected_entities": ["hypertension", "chronic kidney disease", "first-line treatment"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 5,
+    "query": "What role does the gut microbiome play in the effectiveness of immunotherapy for cancer treatment?",
+    "domain": "medical",
+    "expected_entities": ["gut microbiome", "immunotherapy", "cancer"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 6,
+    "query": "Explain the mechanism of action of SSRIs in treating depression.",
+    "domain": "medical",
+    "expected_entities": ["SSRI", "serotonin", "depression"],
+    "difficulty": "easy"
+  },
+  {
+    "id": 7,
+    "query": "What are the contraindications for using ACE inhibitors during pregnancy?",
+    "domain": "medical",
+    "expected_entities": ["ACE inhibitors", "pregnancy", "contraindication"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 8,
+    "query": "How does CRISPR-Cas9 gene editing work, and what are its therapeutic applications?",
+    "domain": "medical",
+    "expected_entities": ["CRISPR", "Cas9", "gene editing", "therapeutic"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 9,
+    "query": "Compare the efficacy and side effect profiles of statins versus PCSK9 inhibitors for cholesterol management.",
+    "domain": "medical",
+    "expected_entities": ["statins", "PCSK9 inhibitors", "cholesterol"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 10,
+    "query": "What biomarkers are used to detect early-stage Alzheimer's disease?",
+    "domain": "medical",
+    "expected_entities": ["biomarkers", "Alzheimer's disease", "early detection"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 11,
+    "query": "How does methotrexate work in treating rheumatoid arthritis?",
+    "domain": "medical",
+    "expected_entities": ["methotrexate", "rheumatoid arthritis"],
+    "difficulty": "easy"
+  },
+  {
+    "id": 12,
+    "query": "What are the cardiovascular risks associated with long-term use of NSAIDs?",
+    "domain": "medical",
+    "expected_entities": ["NSAIDs", "cardiovascular risk"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 13,
+    "query": "Explain the pathophysiology of diabetic neuropathy and its relationship to blood glucose control.",
+    "domain": "medical",
+    "expected_entities": ["diabetic neuropathy", "blood glucose", "pathophysiology"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 14,
+    "query": "What vaccines are recommended for immunocompromised adults?",
+    "domain": "medical",
+    "expected_entities": ["vaccines", "immunocompromised"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 15,
+    "query": "How do monoclonal antibodies target cancer cells, and what types of cancer respond best to this therapy?",
+    "domain": "medical",
+    "expected_entities": ["monoclonal antibodies", "cancer", "immunotherapy"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 16,
+    "query": "What is the role of vitamin D in immune system function?",
+    "domain": "medical",
+    "expected_entities": ["vitamin D", "immune system"],
+    "difficulty": "easy"
+  },
+  {
+    "id": 17,
+    "query": "Describe the multi-drug resistance mechanisms in tuberculosis and treatment strategies.",
+    "domain": "medical",
+    "expected_entities": ["multi-drug resistance", "tuberculosis", "MDR-TB"],
+    "difficulty": "hard"
+  },
+  {
+    "id": 18,
+    "query": "How does the blood-brain barrier affect drug delivery for neurological diseases?",
+    "domain": "medical",
+    "expected_entities": ["blood-brain barrier", "drug delivery", "neurological"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 19,
+    "query": "What are the differences between type 1 and type 2 diabetes in terms of pathogenesis and management?",
+    "domain": "medical",
+    "expected_entities": ["type 1 diabetes", "type 2 diabetes", "pathogenesis"],
+    "difficulty": "medium"
+  },
+  {
+    "id": 20,
+    "query": "How do beta-blockers help manage heart failure, and what are the most commonly prescribed ones?",
+    "domain": "medical",
+    "expected_entities": ["beta-blockers", "heart failure"],
+    "difficulty": "medium"
+  }
+]

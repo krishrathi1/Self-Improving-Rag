@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # --- APEX API Server ---
+  apex-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - TIGERGRAPH_HOST=http://tigergraph:14240
+      - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      tigergraph:
+        condition: service_started
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # --- APEX Dashboard (React Frontend) ---
+  apex-dashboard:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - apex-api
+
+  # --- TigerGraph Database ---
+  tigergraph:
+    image: tigergraph/tigergraph:latest
+    ports:
+      - "14240:14240"   # GraphStudio UI
+      - "9000:9000"     # REST API
+    volumes:
+      - tg-data:/home/tigergraph/mydata
+    environment:
+      - TIGERGRAPH_PASSWORD=tigergraph
+    ulimits:
+      nofile:
+        soft: 1000000
+        hard: 1000000
+
+  # --- Redis (Semantic Cache) ---
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"     # Redis Insight UI
+    volumes:
+      - redis-data:/data
+
+volumes:
+  tg-data:
+  redis-data:
