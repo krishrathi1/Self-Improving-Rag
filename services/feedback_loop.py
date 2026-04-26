@@ -57,6 +57,9 @@ class FeedbackLoop:
         # --- Channel 1: Graph Edge Weight Update ---
         await self._channel_graph_edges(query_id, graph_paths, crag_grade.score)
 
+        # --- Channel 1.5: Hybrid Retrieval Weights Update (True Learning Loop) ---
+        await self._channel_retrieval_weights(crag_grade.score, route_strategy)
+
         # --- Channel 2: Semantic Cache ---
         await self._channel_cache(query, answer, crag_grade.score)
 
@@ -102,6 +105,28 @@ class FeedbackLoop:
                 logger.debug(f"📊 Channel 1: {len(edge_ids)} edge weights updated")
             except Exception as e:
                 logger.debug(f"Channel 1 (edge update) skipped: {e}")
+
+    async def _channel_retrieval_weights(self, crag_score: float, route_strategy: str):
+        """Channel 1.5: TRUE LEARNING LOOP — Adjust macro-retrieval routing weights."""
+        try:
+            from services.hybrid_retriever import get_hybrid_retriever
+            hybrid_retriever = get_hybrid_retriever()
+            
+            # Simple reinforcement learning logic
+            # If answer is good, boost weights of whatever strategy contributed most.
+            graph_delta = 0.0
+            vector_delta = 0.0
+            
+            if crag_score >= 0.7:
+                if "graph" in route_strategy: graph_delta += 0.05
+                if "vector" in route_strategy: vector_delta += 0.05
+            else:
+                if "graph" in route_strategy: graph_delta -= 0.05
+                if "vector" in route_strategy: vector_delta -= 0.05
+                
+            hybrid_retriever.adjust_weights(graph_delta, vector_delta)
+        except Exception as e:
+            logger.debug(f"Channel 1.5 (hybrid retrieval weight update) skipped: {e}")
 
     async def _channel_cache(self, query: str, answer: str, crag_score: float):
         """Channel 2: Cache high-quality responses."""

@@ -120,8 +120,24 @@ class LLMLayer:
             else:
                 raise ValueError(f"Unsupported provider: {self.provider}")
         except Exception as e:
-            logger.error(f"LLM generation error: {e}")
-            raise
+            logger.warning(f"LLM generation failed on {target_model}: {e}. Retrying with fallback model...")
+            
+            # Smart Fallback Logic
+            fallback_model = "gpt-4o-mini" if self.provider == "openai" else "gemini-1.5-flash"
+            self.model = fallback_model
+            
+            try:
+                if self.provider in ("openai", "groq"):
+                    response = await self._generate_openai_compatible(
+                        prompt, temp, max_tok, system_prompt
+                    )
+                elif self.provider == "google":
+                    response = await self._generate_google(prompt, temp, max_tok)
+                else: 
+                    raise ValueError(f"No fallback available for provider: {self.provider}")
+            except Exception as e_fallback:
+                logger.error(f"Fallback LLM generation also failed: {e_fallback}")
+                raise e_fallback
         finally:
             self.model = original_model # Restore original model
 

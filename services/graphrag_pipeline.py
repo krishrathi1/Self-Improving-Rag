@@ -26,6 +26,7 @@ from orchestration.query_decomposer import get_query_decomposer
 from services.semantic_cache import get_semantic_cache
 from services.feedback_loop import get_feedback_loop
 from security.guards import input_guard, output_guard
+from orchestration.observability import trace_stage
 
 
 class GraphRAGPipeline:
@@ -48,6 +49,7 @@ class GraphRAGPipeline:
     Every query strengthens the system for the next one.
     """
 
+    @trace_stage("graphrag_pipeline")
     async def run(self, query: str) -> PipelineResult:
         """Execute the full self-improving GraphRAG pipeline."""
         start = time.perf_counter()
@@ -69,13 +71,10 @@ class GraphRAGPipeline:
         router = get_query_router()
         route = await router.classify(query)
 
-        # --- Step 4: TigerGraph Multi-hop Retrieval ---
-        tg = get_tigergraph_layer()
-        graph_context = await tg.multi_hop_retrieve(
-            entities=route.entities,
-            hops=route.recommended_hops,
-            include_vectors=True,
-        )
+        # --- Step 4: Hybrid Retrieval (Graph + Vector + BM25) ---
+        from services.hybrid_retriever import get_hybrid_retriever
+        hybrid = get_hybrid_retriever()
+        graph_context = await hybrid.retrieve(query)
 
         # --- Step 5: CRAG Grading ---
         crag = get_crag_agent()
