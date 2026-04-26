@@ -52,6 +52,8 @@ class SemanticCache:
                 self._redis = redis_lib.Redis.from_url(
                     settings.redis.url,
                     decode_responses=True,
+                    socket_connect_timeout=0.25,
+                    socket_timeout=0.25,
                 )
                 self._redis.ping()
                 self._redis_checked = True

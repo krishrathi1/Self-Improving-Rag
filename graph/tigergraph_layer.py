@@ -5,7 +5,9 @@ All graph operations (retrieval, feedback, entity management) are routed through
 """
 
 import re
+import socket
 import time
+from urllib.parse import urlparse
 from pathlib import Path
 from typing import Optional
 from loguru import logger
@@ -38,6 +40,8 @@ class TigerGraphLayer:
         self._config = settings.tigergraph
         self._initialized = False
         self._local_chunks: list[Chunk] | None = None
+        self._graph_unavailable = False
+        self._graph_writes_disabled = False
         logger.info(f"🐯 TigerGraph Layer created (host: {self._config.host})")
 
     @property
@@ -98,6 +102,19 @@ class TigerGraphLayer:
         start = time.perf_counter()
         entity_names = [e.name for e in entities]
 
+        if not self.is_reachable():
+            self._graph_unavailable = True
+            chunks = self._local_document_retrieve(entity_names, top_k)
+            relationships = self._local_relationships(entity_names)
+            paths = self._build_paths(relationships, entity_names)
+            return GraphContext(
+                chunks=chunks,
+                relationships=relationships,
+                traversal_paths=paths,
+                entities_resolved=len(entity_names),
+                hops_used=hops,
+            )
+
         try:
             # Try to run installed GSQL query
             result = self.conn.runInstalledQuery(
@@ -116,6 +133,7 @@ class TigerGraphLayer:
 
         except Exception as e:
             logger.warning(f"GSQL query failed, falling back to REST API: {e}")
+            self._graph_unavailable = True
             chunks, relationships, paths = await self._fallback_retrieve(
                 entity_names, hops, top_k
             )
@@ -158,6 +176,8 @@ class TigerGraphLayer:
         """
         if not traversed_edges:
             return
+        if self._graph_writes_disabled or self._graph_unavailable:
+            return
 
         try:
             self.conn.runInstalledQuery(
@@ -173,6 +193,7 @@ class TigerGraphLayer:
                 f"CRAG grade: {crag_grade:.3f}"
             )
         except Exception as e:
+            self._graph_writes_disabled = True
             logger.warning(f"Edge weight update failed (non-critical): {e}")
 
     async def upsert_entities(self, entities: list[Entity]):
@@ -182,6 +203,9 @@ class TigerGraphLayer:
         - Initial document ingestion
         - Entity discovery in the self-improvement loop
         """
+        if self._graph_writes_disabled or self._graph_unavailable:
+            return
+
         for entity in entities:
             try:
                 self.conn.upsertVertex(
@@ -207,6 +231,9 @@ class TigerGraphLayer:
         initial_weight: float = 0.5,
     ):
         """Create relationships between entities."""
+        if self._graph_writes_disabled or self._graph_unavailable:
+            return
+
         for source in source_entities:
             for target in target_entities:
                 try:
@@ -236,7 +263,18 @@ class TigerGraphLayer:
         found = 0
         total_confidence = 0.0
 
+        if not self.is_reachable():
+            self._graph_unavailable = True
+            return {
+                "found": 0,
+                "total": len(entities),
+                "ratio": 0.0,
+                "avg_confidence": 0.0,
+            }
+
         for entity in entities:
+            if self._graph_unavailable:
+                break
             try:
                 result = self.conn.getVerticesById("Entity", entity.name)
                 if result:
@@ -266,17 +304,38 @@ class TigerGraphLayer:
                 "graph_name": self._config.graph_name,
             }
         except Exception as e:
+            self._graph_unavailable = True
             return {"error": str(e)}
 
     async def health_check(self) -> dict:
         """Check TigerGraph connectivity."""
         try:
+            if not self.is_reachable():
+                self._graph_unavailable = True
+                return {
+                    "status": "disconnected",
+                    "error": f"{self._config.host} is not reachable",
+                }
             stats = await self.get_graph_stats()
             if "error" in stats:
                 return {"status": "disconnected", **stats}
             return {"status": "connected", **stats}
         except Exception as e:
             return {"status": "disconnected", "error": str(e)}
+
+    def is_reachable(self) -> bool:
+        """Fast TCP reachability check to avoid slow pyTigerGraph retries."""
+        if self._graph_unavailable:
+            return False
+        parsed = urlparse(self._config.host)
+        host = parsed.hostname or "localhost"
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        try:
+            with socket.create_connection((host, port), timeout=0.25):
+                return True
+        except OSError:
+            self._graph_unavailable = True
+            return False
 
     # --- Private helpers ---
 
@@ -369,6 +428,12 @@ class TigerGraphLayer:
         chunks = []
         relationships = []
 
+        if self._graph_unavailable:
+            chunks = self._local_document_retrieve(entity_names, top_k)
+            relationships = self._local_relationships(entity_names)
+            paths = self._build_paths(relationships, entity_names)
+            return chunks, relationships, paths
+
         for name in entity_names:
             try:
                 # Get vertex neighbors
@@ -443,7 +508,7 @@ class TigerGraphLayer:
                 chunks.append(
                     Chunk(
                         chunk_id=f"local:{doc_path.name}:{index}",
-                        text=paragraph[:900],
+                        text=paragraph[:520],
                         token_count=max(1, len(paragraph) // 4),
                         doc_id=doc_path.name,
                         chunk_index=index,
