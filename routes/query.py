@@ -39,45 +39,66 @@ async def _stream_comparison(query: str) -> AsyncGenerator[str, None]:
     # Notify: starting
     yield await _sse_event("status", {"message": "Starting comparison...", "query": query})
 
-    # --- Run baseline ---
     yield await _sse_event("baseline_start", {"pipeline": "baseline", "status": "started"})
-
-    try:
-        baseline_result = await get_baseline_pipeline().run(query)
-        yield await _sse_event("baseline_complete", {
-            "pipeline": "baseline",
-            "answer": baseline_result.answer,
-            "metrics": baseline_result.metrics.model_dump(),
-        })
-    except Exception as e:
-        logger.error(f"Baseline pipeline error: {e}")
-        baseline_result = PipelineResult(
-            pipeline="baseline",
-            answer=f"Error: {str(e)}",
-            metrics=PipelineMetrics(),
-        )
-        yield await _sse_event("baseline_error", {"error": str(e)})
-
-    # --- Run GraphRAG ---
     yield await _sse_event("graphrag_start", {"pipeline": "graphrag", "status": "started"})
 
-    try:
-        graphrag_result = await get_graphrag_pipeline().run(query)
-        yield await _sse_event("graphrag_complete", {
-            "pipeline": "graphrag",
-            "answer": graphrag_result.answer,
-            "metrics": graphrag_result.metrics.model_dump(),
-            "graph_updates_applied": graphrag_result.graph_updates_applied,
-            "cache_entry_created": graphrag_result.cache_entry_created,
-        })
-    except Exception as e:
-        logger.error(f"GraphRAG pipeline error: {e}")
-        graphrag_result = PipelineResult(
-            pipeline="graphrag",
-            answer=f"Error: {str(e)}",
-            metrics=PipelineMetrics(),
-        )
-        yield await _sse_event("graphrag_error", {"error": str(e)})
+    async def run_baseline():
+        try:
+            result = await get_baseline_pipeline().run(query)
+            return "baseline", result, None
+        except Exception as e:
+            logger.error(f"Baseline pipeline error: {e}")
+            result = PipelineResult(
+                pipeline="baseline",
+                answer=f"Error: {str(e)}",
+                metrics=PipelineMetrics(),
+            )
+            return "baseline", result, str(e)
+
+    async def run_graphrag():
+        try:
+            result = await get_graphrag_pipeline().run(query)
+            return "graphrag", result, None
+        except Exception as e:
+            logger.error(f"GraphRAG pipeline error: {e}")
+            result = PipelineResult(
+                pipeline="graphrag",
+                answer=f"Error: {str(e)}",
+                metrics=PipelineMetrics(),
+            )
+            return "graphrag", result, str(e)
+
+    tasks = {
+        asyncio.create_task(run_baseline()),
+        asyncio.create_task(run_graphrag()),
+    }
+    baseline_result = None
+    graphrag_result = None
+
+    for finished in asyncio.as_completed(tasks):
+        pipeline, result, error = await finished
+
+        if pipeline == "baseline":
+            baseline_result = result
+            if error:
+                yield await _sse_event("baseline_error", {"error": error})
+            yield await _sse_event("baseline_complete", {
+                "pipeline": "baseline",
+                "answer": result.answer,
+                "metrics": result.metrics.model_dump(),
+            })
+
+        if pipeline == "graphrag":
+            graphrag_result = result
+            if error:
+                yield await _sse_event("graphrag_error", {"error": error})
+            yield await _sse_event("graphrag_complete", {
+                "pipeline": "graphrag",
+                "answer": result.answer,
+                "metrics": result.metrics.model_dump(),
+                "graph_updates_applied": result.graph_updates_applied,
+                "cache_entry_created": result.cache_entry_created,
+            })
 
     # --- Comparison summary ---
     comparison = engine.compute_comparison(query, baseline_result, graphrag_result)

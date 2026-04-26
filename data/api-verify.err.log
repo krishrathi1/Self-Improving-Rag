@@ -1,0 +1,16 @@
+INFO:     Started server process [46072]
+INFO:     Waiting for application startup.
+2026-04-26 14:18:43.196 | INFO     | app.main:lifespan:29 - \U0001f680 Starting APEX — Self-Improving GraphRAG v1.0.0
+2026-04-26 14:18:43.196 | INFO     | app.main:lifespan:30 - \U0001f4ca LLM Provider: ollama / llama3.2:latest
+2026-04-26 14:18:43.197 | INFO     | app.main:lifespan:31 - \U0001f42f TigerGraph: http://localhost:14240
+2026-04-26 14:18:43.197 | INFO     | app.main:lifespan:32 - \U0001f534 Redis: redis://localhost:6379
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8012 (Press CTRL+C to quit)
+2026-04-26 14:18:46.597 | INFO     | graph.tigergraph_layer:__init__:41 - \U0001f42f TigerGraph Layer created (host: http://localhost:14240)
+2026-04-26 14:18:55.299 | WARNING  | graph.tigergraph_layer:conn:64 - Could not auto-generate TigerGraph API token
+2026-04-26 14:18:55.299 | SUCCESS  | graph.tigergraph_layer:conn:67 - \u2705 Connected to TigerGraph: APEX_KG
+2026-04-26 14:18:59.378 | INFO     | services.semantic_cache:__init__:41 - \U0001f4be Semantic Cache initialized (min confidence: 0.75)
+2026-04-26 14:19:03.461 | WARNING  | services.semantic_cache:redis:60 - Redis unavailable, using in-memory cache: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-04-26 14:19:03.461 | INFO     | llm.llm_layer:__init__:47 - \U0001f916 LLM Layer initialized: ollama/llama3.2:latest
+2026-04-26 14:19:04.367 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 905ms
+2026-04-26 14:19:04.379 | INFO     | evaluation.metrics_store:__init__:41 - \U0001f4ca Metrics Store initialized: C:\Users\KRISH\Desktop\Self Rag\data\apex_metrics.db

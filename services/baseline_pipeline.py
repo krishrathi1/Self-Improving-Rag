@@ -42,7 +42,7 @@ class BaselinePipeline:
         )
 
         try:
-            response = await llm.generate(prompt)
+            response = await llm.generate(prompt, max_tokens=640)
 
             elapsed_ms = (time.perf_counter() - start) * 1000
 

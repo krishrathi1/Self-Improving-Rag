@@ -94,3 +94,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 2026-04-26 14:12:51.149 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 369ms
 2026-04-26 14:13:01.732 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
 2026-04-26 14:13:06.170 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 389ms
+2026-04-26 14:13:17.271 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:13:21.809 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 494ms
+2026-04-26 14:13:32.275 | ERROR    | evaluation.metrics_store:get_latest:337 - Failed to get latest: 'sqlite3.Row' object has no attribute 'get'
+2026-04-26 14:13:36.741 | DEBUG    | llm.llm_layer:generate:127 - LLM call: 32 tokens, $0.000000, 407ms

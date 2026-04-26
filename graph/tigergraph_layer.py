@@ -443,7 +443,7 @@ class TigerGraphLayer:
                 chunks.append(
                     Chunk(
                         chunk_id=f"local:{doc_path.name}:{index}",
-                        text=paragraph[:1600],
+                        text=paragraph[:900],
                         token_count=max(1, len(paragraph) // 4),
                         doc_id=doc_path.name,
                         chunk_index=index,

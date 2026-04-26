@@ -27,6 +27,10 @@ class EntityExtractor:
         Extract entities from text using LLM.
         Falls back to simple regex extraction on failure.
         """
+        llm = get_llm_layer()
+        if llm.provider == "ollama":
+            return self._fallback_extract(text)
+
         try:
             return await self._llm_extract(text)
         except Exception as e:

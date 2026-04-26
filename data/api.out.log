@@ -105,3 +105,11 @@ INFO:     127.0.0.1:51328 - "GET /api/metrics/summary HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51329 - "GET /api/metrics/improvement-curve HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51331 - "GET /api/metrics/latest HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51332 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55487 - "GET /api/metrics/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55488 - "GET /api/metrics/improvement-curve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55490 - "GET /api/metrics/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55491 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59195 - "GET /api/metrics/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59196 - "GET /api/metrics/improvement-curve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59199 - "GET /api/metrics/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59200 - "GET /api/health HTTP/1.1" 200 OK
