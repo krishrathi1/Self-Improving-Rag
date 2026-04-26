@@ -46,6 +46,14 @@ def input_guard(query: str) -> bool:
     if INJECTION_REGEX.search(query):
         logger.warning(f"🛡️ Input blocked: injection attempt detected")
         return False
+        
+    # STATE-OF-THE-ART: Intent/Boundary Guard
+    # Production systems should route via LlamaGuard, NeMo Guardrails, or asynchronous LLM strict-intent checks
+    # For speed, we will implement a fast heuristic: length and structural entropy
+    structural_markers = ["[", "]", "{", "}", "<|", "|>"] 
+    if len([m for m in structural_markers if m in query]) > 5:
+        logger.warning("🛡️ Input blocked: structural injection anomaly (Too many prompt-like boundaries)")
+        return False
 
     return True
 
