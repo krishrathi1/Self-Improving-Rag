@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #e7edf6;
@@ -106,9 +109,29 @@ button {
 .stat-card,
 .query-console {
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(15, 26, 32, 0.94);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  border-radius: 12px;
+  background: rgba(15, 26, 32, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.panel:nth-child(1) { animation-delay: 0.1s; }
+.panel:nth-child(2) { animation-delay: 0.2s; }
+.panel:nth-child(3) { animation-delay: 0.3s; }
+.panel:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(180, 196, 212, 0.3);
 }
 
 .status-pill {
@@ -144,11 +167,32 @@ button {
   height: 10px;
   border-radius: 999px;
   background: var(--faint);
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
 }
 
-.status-pill.good .status-dot { background: var(--green); }
-.status-pill.warn .status-dot { background: var(--amber); }
-.status-pill.bad .status-dot { background: var(--red); }
+.status-pill.good .status-dot { 
+  background: var(--green); 
+  animation: pulse-green 2s infinite;
+}
+.status-pill.warn .status-dot { 
+  background: var(--amber); 
+  animation: pulse-amber 2s infinite;
+}
+.status-pill.bad .status-dot { 
+  background: var(--red); 
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
+}
+
+@keyframes pulse-amber {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
 
 .model-card {
   grid-column: 1 / -1;
@@ -181,11 +225,12 @@ button {
   resize: vertical;
   padding: 18px;
   border: 1px solid rgba(180, 196, 212, 0.12);
-  border-radius: 8px;
+  border-radius: 12px;
   outline: none;
   color: #f8fbff;
-  background: #071015;
+  background: rgba(7, 16, 21, 0.6);
   line-height: 1.6;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .query-console textarea:focus {
@@ -215,31 +260,54 @@ button {
 
 .prompt-chips button {
   max-width: 360px;
-  padding: 8px 11px;
+  padding: 8px 12px;
   color: #c2cfdd;
-  background: #112129;
+  background: rgba(17, 33, 41, 0.7);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px;
 }
 
 .prompt-chips button:hover {
   color: #ffffff;
+  background: rgba(30, 50, 60, 0.9);
   border-color: rgba(96, 165, 250, 0.55);
+  transform: translateY(-1px);
 }
 
 .run-button {
   min-width: 180px;
   min-height: 44px;
-  padding: 0 20px;
-  border-color: rgba(45, 212, 191, 0.5);
+  padding: 0 24px;
+  border: none;
+  border-radius: 24px;
   color: #061216;
-  background: var(--green);
+  background: linear-gradient(135deg, #2dd4bf, #0d9488);
   font-weight: 800;
+  box-shadow: 0 4px 14px rgba(45, 212, 191, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.run-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 212, 191, 0.4);
+  background: linear-gradient(135deg, #34e0ca, #0fbaa9);
+}
+
+.run-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(45, 212, 191, 0.3);
 }
 
 .run-button:disabled {
-  opacity: 0.55;
+  opacity: 0.6;
+  background: #2a3f47;
+  color: #5f7185;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
