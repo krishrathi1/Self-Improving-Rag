@@ -23,7 +23,16 @@ class VectorStore:
         self._collection = []
         self._bm25 = None
         self._tokenized_corpus = []
-        logger.info("🧠 Real Vector Store Online (Dense + Sparse Retrieval Active)")
+        
+        # Initialize Real Embedding Model
+        try:
+            from sentence_transformers import SentenceTransformer
+            # Using a fast, lightweight model for local execution
+            self._embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+            logger.info("🧠 Real Vector Store Online (SentenceTransformers + BM25)")
+        except ImportError:
+            self._embedding_model = None
+            logger.warning("sentence-transformers not found! Using fallback hash embeddings.")
 
     def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """Compute cosine similarity between two vectors."""
@@ -36,32 +45,37 @@ class VectorStore:
             
         return dot_product / (norm_v1 * norm_v2)
 
-    def _mock_embed(self, text: str) -> List[float]:
-        """
-        Produce a deterministic semantic vector for a text.
-        (Replaces OpenAI/Gemini embedding endpoint for zero-dependency execution)
-        """
-        # Hashing words into a 64-dimensional vector
-        vector = [0.0] * 64
-        words = text.lower().split()
-        for i, word in enumerate(words):
-            hash_val = hash(word)
-            vector[(hash_val + i) % 64] += 1.0
-            
-        # Normalize
-        norm = math.sqrt(sum(x * x for x in vector)) or 1.0
-        return [x / norm for x in vector]
+    def _embed(self, texts: List[str]) -> List[List[float]]:
+        """Produce dense semantic vectors for texts."""
+        if self._embedding_model:
+            # Generate real embeddings (returns numpy array, convert to list)
+            embeddings = self._embedding_model.encode(texts)
+            return embeddings.tolist()
+        else:
+            # Fallback mock embedder
+            results = []
+            for text in texts:
+                vector = [0.0] * 64
+                words = text.lower().split()
+                for i, word in enumerate(words):
+                    hash_val = hash(word)
+                    vector[(hash_val + i) % 64] += 1.0
+                norm = math.sqrt(sum(x * x for x in vector)) or 1.0
+                results.append([x / norm for x in vector])
+            return results
 
     async def add_texts(self, texts: List[str], metadatas: Optional[List[dict]] = None) -> List[str]:
         """Convert chunks to embeddings and insert them into the DB."""
         ids = [str(uuid.uuid4()) for _ in texts]
         
+        # Batch embed all texts at once for performance
+        vectors = self._embed(texts)
+        
         for i, text in enumerate(texts):
-            vector = self._mock_embed(text)
             meta = metadatas[i] if metadatas else {}
             self._collection.append({
                 "id": ids[i],
-                "vector": vector,
+                "vector": vectors[i],
                 "text": text,
                 "metadata": meta
             })
@@ -85,7 +99,7 @@ class VectorStore:
         if not self._collection:
             return []
             
-        query_vector = self._mock_embed(query)
+        query_vector = self._embed([query])[0]
         scored_results = []
         
         for doc in self._collection:
