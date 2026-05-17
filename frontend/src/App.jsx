@@ -124,7 +124,16 @@ function PipelinePanel({ title, subtitle, result, loading, tone }) {
       )}
 
       <div className="answer-box">
-        {result?.answer || (loading ? 'Waiting for model response...' : 'Run a comparison to see the generated answer.')}
+        {result?.answer ? (
+          <div>{result.answer}</div>
+        ) : loading ? (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} />
+            <span>Waiting for model response...</span>
+          </div>
+        ) : (
+          <span style={{ color: 'var(--muted)' }}>Run a comparison to see the generated answer.</span>
+        )}
       </div>
     </section>
   );
@@ -188,9 +197,14 @@ function ReadinessPanel({ health }) {
       name: 'Metrics store',
       status: deps.metrics_db?.status || 'checking',
       detail: `${deps.metrics_db?.total_comparisons || 0} saved comparisons`,
-      command: 'data/apex_metrics.db',
+      command: 'sqlite3 data/apex_metrics.db',
     },
   ];
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    // Visual feedback could be added here if we had a toast system
+  };
 
   return (
     <section className="panel readiness-panel">
@@ -215,7 +229,13 @@ function ReadinessPanel({ health }) {
                 <strong>{item.name}</strong>
                 <small>{item.detail}</small>
               </div>
-              <code>{item.command}</code>
+              <code 
+                onClick={() => handleCopy(item.command)} 
+                title="Click to copy" 
+                style={{ cursor: 'pointer' }}
+              >
+                {item.command}
+              </code>
             </div>
           );
         })}
@@ -264,6 +284,7 @@ export default function App() {
   const [latest, setLatest] = useState([]);
   const [health, setHealth] = useState(null);
   const [eventLog, setEventLog] = useState([]);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const addEvent = useCallback((text) => {
     setEventLog((items) => [{ text, time: new Date().toLocaleTimeString() }, ...items].slice(0, 8));
@@ -283,8 +304,10 @@ export default function App() {
       if (curveRes.ok) setImprovementCurve(await curveRes.json());
       if (latestRes.ok) setLatest(await latestRes.json());
       if (healthRes.ok) setHealth(await healthRes.json());
+      else setHealth(prev => ({ ...prev, status: 'disconnected' }));
     } catch (error) {
       addEvent(`Dashboard refresh skipped: ${error.message}`);
+      setHealth(prev => ({ ...prev, status: 'disconnected' }));
     }
   }, [addEvent]);
 
@@ -299,6 +322,7 @@ export default function App() {
     if (!cleanQuery || isLoading) return;
 
     setIsLoading(true);
+    setErrorMsg(null);
     setBaselineResult(null);
     setGraphragResult(null);
     setComparison(null);
@@ -350,9 +374,18 @@ export default function App() {
       await fetchDashboard();
     } catch (error) {
       addEvent(`Query failed: ${error.message}`);
+      setErrorMsg(`Failed to run comparison: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setQuery('');
+    setBaselineResult(null);
+    setGraphragResult(null);
+    setComparison(null);
+    setErrorMsg(null);
   };
 
   const savings = useMemo(() => ({
@@ -407,10 +440,26 @@ export default function App() {
               </button>
             ))}
           </div>
-          <button className="run-button" type="button" onClick={runQuery} disabled={isLoading || !query.trim()}>
-            {isLoading ? 'Running comparison' : 'Run comparison'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              className="run-button" 
+              type="button" 
+              onClick={handleReset} 
+              disabled={isLoading || (!query && !baselineResult)}
+              style={{ background: 'transparent', border: '1px solid var(--line)', color: '#c2cfdd', minWidth: '100px' }}
+            >
+              Reset
+            </button>
+            <button className="run-button" type="button" onClick={runQuery} disabled={isLoading || !query.trim()}>
+              {isLoading ? 'Running...' : 'Run comparison'}
+            </button>
+          </div>
         </div>
+        {errorMsg && (
+          <div style={{ marginTop: '14px', color: 'var(--red)', fontSize: '0.9rem', padding: '12px', background: 'rgba(251, 113, 133, 0.1)', borderRadius: '8px', border: '1px solid rgba(251, 113, 133, 0.2)' }}>
+            {errorMsg}
+          </div>
+        )}
       </section>
 
       <section className="stat-grid">
