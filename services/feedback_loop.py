@@ -116,15 +116,18 @@ class FeedbackLoop:
             # If answer is good, boost weights of whatever strategy contributed most.
             graph_delta = 0.0
             vector_delta = 0.0
+            sparse_delta = 0.0
             
             if crag_score >= 0.7:
                 if "graph" in route_strategy: graph_delta += 0.05
                 if "vector" in route_strategy: vector_delta += 0.05
+                sparse_delta += 0.02 # Give a small boost to sparse for standard queries
             else:
                 if "graph" in route_strategy: graph_delta -= 0.05
                 if "vector" in route_strategy: vector_delta -= 0.05
+                sparse_delta -= 0.02
                 
-            hybrid_retriever.adjust_weights(graph_delta, vector_delta)
+            hybrid_retriever.adjust_weights(graph_delta, vector_delta, sparse_delta)
         except Exception as e:
             logger.debug(f"Channel 1.5 (hybrid retrieval weight update) skipped: {e}")
 

@@ -76,30 +76,26 @@ class BaselinePipeline:
     async def _simple_retrieve(self, query: str) -> str:
         """
         Simple vector-based retrieval for the baseline.
-        In production, this would query a vector store (e.g., Qdrant, Pinecone).
-        For the hackathon, we can use TigerGraph's vector search without graph traversal.
+        Uses local VectorStore for Dense retrieval (and some BM25) instead of TigerGraph
+        to represent a true standard baseline RAG.
         """
         try:
-            from graph.tigergraph_layer import get_tigergraph_layer
-
-            tg = get_tigergraph_layer()
-            # Use vector search only — no graph traversal
-            result = tg.conn.runInstalledQuery(
-                "vector_search",
-                params={"query_text": query, "top_k": 10},
-            )
-
-            if result and result[0]:
-                chunks = result[0].get("@@top_chunks", [])
-                texts = [
-                    c.get("attributes", c).get("text", "")
-                    for c in chunks
-                    if c.get("attributes", c).get("text")
-                ]
+            from services.vector_store import get_vector_store
+            vs = get_vector_store()
+            
+            # Simple Dense Search (Standard RAG)
+            chunks = await vs.similarity_search(query, k=5)
+            
+            if not chunks:
+                # Fallback to BM25 if Vector store doesn't match
+                chunks = await vs.keyword_search(query, k=5)
+                
+            if chunks:
+                texts = [c.text for c in chunks if c.text]
                 return "\n\n".join(texts[:5])
 
         except Exception as e:
-            logger.debug(f"Baseline retrieval skipped: {e}")
+            logger.debug(f"Baseline retrieval skipped/failed: {e}")
 
         return ""
 

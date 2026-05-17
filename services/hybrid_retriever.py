@@ -21,12 +21,13 @@ class HybridRetriever:
         self.vector_store = get_vector_store()
         self.tigergraph = get_tigergraph_layer()
         self.k = 60 # RRF fusion constant
-        self.weights = {"graph": 1.0, "vector": 1.0}
+        self.weights = {"graph": 1.0, "vector": 1.0, "sparse": 1.0}
         
-    def adjust_weights(self, graph_delta: float, vector_delta: float):
+    def adjust_weights(self, graph_delta: float, vector_delta: float, sparse_delta: float = 0.0):
         """LEARNING LOOP: Update weights based on feedback from evaluation system."""
         self.weights["graph"] = max(0.1, self.weights["graph"] + graph_delta)
         self.weights["vector"] = max(0.1, self.weights["vector"] + vector_delta)
+        self.weights["sparse"] = max(0.1, self.weights["sparse"] + sparse_delta)
         logger.info(f"⚖️ Hybrid Retrieval Weights updated: {self.weights}")
         
     @trace_stage("hybrid_retrieval")
@@ -34,13 +35,13 @@ class HybridRetriever:
         """
         Run multi-modal retrieval.
         - Graph search extracts structural entities.
-        - Vector search extracts semantic chunks.
-        Combines them into a unified context.
+        - Vector search extracts semantic chunks (Dense).
+        - Keyword search extracts exact matches (Sparse).
+        Combines them into a unified context using RRF.
         """
-        logger.info(f"🔄 Executing Hybrid Retrieval for: '{query}'")
+        logger.info(f"🔄 Executing Hybrid Retrieval (Graph+Dense+Sparse) for: '{query}'")
         
         # 1. Graph Retrieval (Structural/Exact)
-        # Using a dummy or actual tigergraph call if adapted
         graph_context = await self.tigergraph.query_rag(
             query=query, 
             dataset=None, 
@@ -48,10 +49,13 @@ class HybridRetriever:
             threshold=0.5
         )
         
-        # 2. Vector Retrieval (Semantic)
+        # 2. Vector Retrieval (Semantic/Dense)
         vector_chunks = await self.vector_store.similarity_search(query=query, k=5)
+
+        # 3. Keyword Retrieval (Sparse/BM25)
+        sparse_chunks = await self.vector_store.keyword_search(query=query, k=5)
         
-        # 3. Fuse results (RRF with Learned Weights)
+        # 4. Fuse results (RRF with Learned Weights)
         all_chunks = []
         # Boost scores based on learned system weights
         for idx, c in enumerate(graph_context.chunks):
@@ -60,6 +64,10 @@ class HybridRetriever:
 
         for idx, c in enumerate(vector_chunks):
             c.score = self.weights["vector"] * (1 / (self.k + idx + 1))
+            all_chunks.append(c)
+
+        for idx, c in enumerate(sparse_chunks):
+            c.score = self.weights["sparse"] * (1 / (self.k + idx + 1))
             all_chunks.append(c)
         
         # Basic RRF/Deduplication
@@ -77,7 +85,7 @@ class HybridRetriever:
         
         graph_context.chunks = fused_chunks
         
-        logger.success(f"✅ Hybrid Retrieval complete. Graph + Vector fused into {len(fused_chunks)} chunks.")
+        logger.success(f"✅ Hybrid Retrieval complete. Graph + Dense + Sparse fused into {len(fused_chunks)} chunks.")
         
         return graph_context
 

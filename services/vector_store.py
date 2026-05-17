@@ -14,13 +14,16 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 class VectorStore:
     """
     In-memory Vector Database. 
-    Implements Exact K-Nearest Neighbors using Cosine Similarity.
-    In a full distributed cluster, this swaps to ChromaDB or Pinecone.
+    Implements Exact K-Nearest Neighbors using Cosine Similarity for Dense Retrieval,
+    and BM25 for Sparse/Keyword Retrieval.
+    In a full distributed cluster, this swaps to ChromaDB or Pinecone + ElasticSearch.
     """
     
     def __init__(self):
         self._collection = []
-        logger.info("🧠 Real Vector Store Online (Dense Retrieval Active)")
+        self._bm25 = None
+        self._tokenized_corpus = []
+        logger.info("🧠 Real Vector Store Online (Dense + Sparse Retrieval Active)")
 
     def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """Compute cosine similarity between two vectors."""
@@ -62,13 +65,22 @@ class VectorStore:
                 "text": text,
                 "metadata": meta
             })
+            self._tokenized_corpus.append(text.lower().split())
             
-        logger.debug(f"📐 Embedded and stored {len(texts)} chunks in Vector DB")
+        # Re-build BM25 index
+        try:
+            from rank_bm25 import BM25Okapi
+            self._bm25 = BM25Okapi(self._tokenized_corpus)
+        except ImportError:
+            self._bm25 = None
+            logger.warning("rank_bm25 not installed, sparse retrieval will be disabled.")
+            
+        logger.debug(f"📐 Embedded and stored {len(texts)} chunks in Vector DB (Dense + Sparse)")
         return ids
 
     async def similarity_search(self, query: str, k: int = 5) -> List[Chunk]:
         """Perform dense semantic search returning Chunk models."""
-        logger.info(f"🔎 FAISS/Vector search executed for: '{query[:30]}...'")
+        logger.info(f"🔎 FAISS/Dense search executed for: '{query[:30]}...'")
         
         if not self._collection:
             return []
@@ -86,8 +98,39 @@ class VectorStore:
         
         chunks = []
         for rank, (score, doc) in enumerate(top_k):
-            # Only return chunks with a mild baseline similarity threshold
             if score > 0.05:
+                meta = doc["metadata"]
+                chunks.append(Chunk(
+                    chunk_id=doc["id"],
+                    text=doc["text"],
+                    doc_id=meta.get("doc_id", "unknown"),
+                    chunk_index=rank,
+                    score=score
+                ))
+                
+        return chunks
+
+    async def keyword_search(self, query: str, k: int = 5) -> List[Chunk]:
+        """Perform sparse keyword search using BM25."""
+        logger.info(f"🔎 BM25/Sparse search executed for: '{query[:30]}...'")
+        
+        if not self._collection or not self._bm25:
+            return []
+            
+        tokenized_query = query.lower().split()
+        scores = self._bm25.get_scores(tokenized_query)
+        
+        scored_results = [
+            (score, self._collection[i])
+            for i, score in enumerate(scores)
+        ]
+        
+        scored_results.sort(key=lambda x: x[0], reverse=True)
+        top_k = scored_results[:k]
+        
+        chunks = []
+        for rank, (score, doc) in enumerate(top_k):
+            if score > 0.0:  # Only return if there's some BM25 match
                 meta = doc["metadata"]
                 chunks.append(Chunk(
                     chunk_id=doc["id"],
